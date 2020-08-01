@@ -1,13 +1,34 @@
 <template>
-<div class="game">
+  <div class="game">
     <div class="wrapper">
-      <div class="center" @click="play">{{turn}}</div>
-      <div id="btn_1" name="1" @click="playerRepeat" :class="[{toucheble: isToucheble}, 'top-left']"></div>
-      <div id="btn_2" name="2" @click="playerRepeat" :class="[{toucheble: isToucheble}, 'top-right']"></div>
-      <div id="btn_3" name="3" @click="playerRepeat" :class="[{toucheble: isToucheble}, 'bottom-left']"></div>
-      <div id="btn_4" name="4" @click="playerRepeat" :class="[{toucheble: isToucheble}, 'bottom-right']"></div>
+      <div class="center" @click="play">{{centerText}}</div>
+      <div
+        id="btn_1"
+        name="1"
+        @click="playerRepeat"
+        :class="[{toucheble: waitToRepeat, highlighted: btn_1}, 'top-left']"
+      ></div>
+      <div
+        id="btn_2"
+        name="2"
+        @click="playerRepeat"
+        :class="[{toucheble: waitToRepeat, highlighted: btn_2}, 'top-right']"
+      ></div>
+      <div
+        id="btn_3"
+        name="3"
+        @click="playerRepeat"
+        :class="[{toucheble: waitToRepeat, highlighted: btn_3}, 'bottom-left']"
+      ></div>
+      <div
+        id="btn_4"
+        name="4"
+        @click="playerRepeat"
+        :class="[{toucheble: waitToRepeat, highlighted: btn_4}, 'bottom-right']"
+      ></div>
     </div>
     <form name="settings">
+      <span class="stage">Уровень {{score}}</span>
       <h2>Уровень сложности</h2>
       <div class="label-group">
         <label for="radio_one">Лёгкий</label>
@@ -16,11 +37,11 @@
       </div>
       <div class="input-group">
         <input type="radio" id="radio_one" name="level" value="easy" v-model="level" />
-        <input type="radio" id="radio_two" name="level" value="medium" v-model="level"/>
-        <input type="radio" id="radio_three" name="level" value="hard" v-model="level"/>
+        <input type="radio" id="radio_two" name="level" value="medium" v-model="level" />
+        <input type="radio" id="radio_three" name="level" value="hard" v-model="level" />
       </div>
     </form>
-</div>
+  </div>
 </template>
 
 <script>
@@ -28,127 +49,126 @@ const levels = {
   easy: 1500,
   medium: 1000,
   hard: 400
-}
-let counter = 0;
-let waitToRepeat = false;
-let arr = [1];
-let playersClick = 0;
+};
+
+const defaultSettings = ()=>({
+level: "easy",
+    
+    endScore: 0,
+    score: 1,
+    waitToRepeat: false,
+    playersClick: 0,
+    arr: [1], 
+    counter: 0,
+    btn_1: false,
+    btn_2: false,
+    btn_3: false,
+    btn_4: false
+})
 
 
 
 export default {
   name: "Game",
-  data: ()=>({
-    level: 'easy', 
-    turn: 'Start Simon the game', 
-    endScore: 0, 
-    disabledButton: false, 
-    isToucheble: false
+  data: () => ({
+    level: "easy",
+    centerText: "Начать Simon the game",
+    endScore: 0,
+    score: 1,
+    waitToRepeat: false,
+    playersClick: 0,
+    arr: [1], //массив кнопок, которые нажимает функция (будет пополняться с каждым новым уровнем)
+    counter: 0,
+    btn_1: false,
+    btn_2: false,
+    btn_3: false,
+    btn_4: false
   }),
   methods: {
-
-
-
-
-
-  highlight(btn) {
-     btn.classList.add('highlighted');
-     setTimeout(() => {
-       btn.classList.remove('highlighted');
-     }, 350);
-  },
-
-
-
-
-
-
-  playerRepeat(event){
-    if(!waitToRepeat) return false;
-    const buttonNum = event.target.getAttribute('name');
-    console.log(waitToRepeat, Number(buttonNum), playersClick, arr[playersClick]);
-   const audio = new Audio(); // Создаём новый элемент Audio
-	 audio.src = require(`../assets/${buttonNum}.mp3`) // Указываем путь к звуку "клика"
-	 audio.play()
-    if(waitToRepeat){
-      if(arr[playersClick] !== Number(buttonNum))  {
-        this.endScore = arr.length;
-        this.turn = `Game Over! You're score ${arr.length} Let's try again!`;
-        
-        arr = [this.getRandomButton()];
-        waitToRepeat = false;
-        return;
-      } 
-      playersClick = playersClick + 1;
-       if(arr.length === playersClick) {
-         arr.push(this.getRandomButton());
-         playersClick = 0; 
-         setTimeout(()=>{
-           this.play();
-         }, 2000)
-         
-       }
-      }
+    //метод, который подсвечивает нажатые игроком или функцией кнопки
+    highlight(btn) { 
+      this[`btn_${btn}`] = true;
+      setTimeout(() => {
+        this[`btn_${btn}`] = false;
+      }, 350);
+    },
+ 
+   //метод, который отслеживает нажатие кнопок и сравнивает верно ли нажато
+    playerRepeat(event) {
+      if (!this.waitToRepeat) return false;
+      const buttonNum = event.target.getAttribute("name");
       
+      this.highlight(buttonNum); 
+      const audio = new Audio(); 
+      audio.src = require(`../assets/${buttonNum}.mp3`); 
+      audio.play(); 
+      if (this.waitToRepeat) { // проверяем, ожидает ли функция нажатий от игрока
+        if (this.arr[this.playersClick] !== Number(buttonNum)) { //если не соответсвтует цифре в массиве - конец игры
+          this.endScore = this.arr.length;
+          this.centerText = `Game Over! Ты дошёл до ${this.arr.length} уровня. Ещё раз?`;
+     
+          Object.assign(this.$data, defaultSettings());
+          this.disableCenterButton = false;
+          this.waitToRepeat = false;
+          return;
+        }
+        this.playersClick = this.playersClick + 1; //если соответствует, увеличиваем счётчик нажатий и идём дальше
+        if (this.arr.length === this.playersClick) { //если повторили все кнопки - продолжаем игру
+          this.arr.push(this.getRandomButton());
+          this.playersClick = 0;
+          setTimeout(() => {
+            this.play();
+          }, 2000);
+        }
+      }
     },
 
+//метод, который возвращает рандомный номер кнопки от 1 до 4 включительно
+    getRandomButton() {
+      const min = 1;
+      const max = 5;
+      return Math.floor(Math.random() * (max - min)) + min;
+    },
 
-
-
-
-
-
-getRandomButton() {
-  const min = 1
-  const max = 5
-  return Math.floor(Math.random() * (max - min)) + min;
-},
-
-
-
-
-
-
-
-    play(){ 
+//метод который показывает, что нажимать
+    play() {
       
-      this.turn = 'My turn!';
-      this.isToucheble = false;
+      this.disableCenterButton = true;
+      this.centerText = "Запоминай!";
+      this.score = this.arr.length;
+      this.waitToRepeat = false;
       let timer = setInterval(() => {
-           const button = document.querySelector(`#btn_${arr[counter]}`);
-           const buttonNum = button.getAttribute('name');
-              this.highlight(button);
-              const audio = new Audio(); // Создаём новый элемент Audio
-	 audio.src = require(`../assets/${buttonNum}.mp3`) // Указываем путь к звуку "клика"
-	 audio.play()
-              counter = counter + 1; 
-            if (counter === arr.length) {
-              clearInterval(timer);
-              waitToRepeat = true;
-              counter = 0
-              setTimeout(()=>{
-                 this.turn = 'You turn'
-                 this.isToucheble = true;
-              }, 1500)
-              console.log(this, arr);
-            }
-            
-       }, levels[this.level]);
-       
+        this.highlight(Number(this.arr[this.counter]));
+        const audio = new Audio(); // Создаём новый элемент Audio
+        audio.src = require(`../assets/${this.arr[this.counter]}.mp3`); // Указываем путь к звуку "клика"
+        audio.play();
+        this.counter = this.counter + 1;
+        if (this.counter === this.arr.length) {
+          clearInterval(timer);
+          
+          this.counter = 0;
+          setTimeout(() => {
+            this.centerText = "Повторяй!";
+            this.waitToRepeat = true;
+          }, 1500);
+          
+        }
+      }, levels[this.level]);
     }
   }
-}
+};
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="scss">
 
-.label-group, .input-group {
+<style scoped lang="scss">
+.label-group,
+.input-group {
   display: flex;
   justify-content: space-between;
 }
 
-label, input {
+label,
+input {
   width: 100px;
   margin: 0;
   text-align: center;
@@ -157,7 +177,13 @@ label, input {
 h2 {
   text-align: center;
 }
-
+.stage {
+  width: 100%;
+  text-align: center;
+  font-size: 15px;
+  font-weight: bold;
+  display: block;
+}
 .wrapper {
   width: 500px;
   height: 500px;
@@ -179,14 +205,16 @@ h2 {
     }
 
     &.toucheble:active {
-      transition: filter .4s;
+      transition: filter 0.1s;
       filter: brightness(0.9);
     }
+    &.highlighted {
+      filter: brightness(1.1);
+    }
+    &.highlighted:hover {
+      filter: brightness(1.1);
+    }
   }
-}
-
-div.highlighted {
-  filter: brightness(1);
 }
 
 .top-left {
@@ -229,30 +257,30 @@ div.highlighted {
 
 div.center {
   position: absolute;
-    width: 200px;
-    height: 200px;
-    top: 50%;
-    left: 50%;
-    margin-left: -100px;
-    margin-top: -100px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 100px;
-    font-weight: bolder;
-    z-index: 999;
-    border: 4px solid #ccc;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    box-sizing: border-box;
-    font-size: 20px;
-    padding: 20px;
-    text-align: center;
-    &:hover{
-      transition: .4s;
-      background: rgb(187, 187, 187);
-    }
+  width: 200px;
+  height: 200px;
+  top: 50%;
+  left: 50%;
+  margin-left: -100px;
+  margin-top: -100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 100px;
+  font-weight: bolder;
+  z-index: 999;
+  border: 4px solid #ccc;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  box-sizing: border-box;
+  font-size: 20px;
+  padding: 20px;
+  text-align: center;
+  &:hover {
+    transition: 0.4s;
+    background: rgb(187, 187, 187);
+  }
 }
 </style>
