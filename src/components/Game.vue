@@ -10,6 +10,14 @@
           <label for="start">Start</label>
           <button class="start" name="start"></button>
         </div>
+        <div class="button-group">
+          <label for="radio-group">Level</label>
+          <div name="radio-group" class="radio-group">
+            <p><input type="radio" name="level" id="1" value="1" />1</p>
+            <p><input type="radio" name="level" id="2" value="2" />2</p>
+            <p><input type="radio" name="level" id="3" value="3" />3</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -65,6 +73,7 @@ $lamp_border: 10px solid black;
   border-radius: 1000px;
   background: url("../assets/holes.jpg");
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
@@ -74,6 +83,45 @@ $lamp_border: 10px solid black;
   justify-content: center;
   align-items: center;
   font-weight: bolder;
+  margin: 0 0 10px;
+}
+.radio-group {
+  display: flex;
+  flex-direction: row;
+  color: #fff;
+  p {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 5px;
+    input {
+      margin: 0;
+      width: 25px;
+      height: 25px;
+      border-radius: 1000px;
+      outline: none;
+      border: 5px solid black;
+      box-sizing: border-box;
+      background-image: url("../assets/plastic.png");
+      background-color: rgba(255, 253, 130, 0.9);
+      background-blend-mode: color-burn;
+      background-size: cover;
+      box-shadow: 3px 2px 2px #4a4a4a8c;
+      appearance: none;
+      cursor: pointer;
+      filter: brightness(0.8);
+      &:checked {
+        background-color: rgba(127, 98, 255, 0.9)
+      }
+      &:hover {
+        filter: brightness(1);
+      }
+      &:active {
+        transition: filter 0.1s;
+        filter: brightness(0.9);
+      }
+    }
+  }
 }
 label {
   color: green;
