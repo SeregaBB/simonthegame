@@ -1,286 +1,317 @@
 <template>
   <div class="game">
-    <div class="wrapper">
-      <div class="center" @click="play">{{centerText}}</div>
-      <div
-        id="btn_1"
-        name="1"
-        @click="playerRepeat"
-        :class="[{toucheble: waitToRepeat, highlighted: btn_1}, 'top-left']"
-      ></div>
-      <div
-        id="btn_2"
-        name="2"
-        @click="playerRepeat"
-        :class="[{toucheble: waitToRepeat, highlighted: btn_2}, 'top-right']"
-      ></div>
-      <div
-        id="btn_3"
-        name="3"
-        @click="playerRepeat"
-        :class="[{toucheble: waitToRepeat, highlighted: btn_3}, 'bottom-left']"
-      ></div>
-      <div
-        id="btn_4"
-        name="4"
-        @click="playerRepeat"
-        :class="[{toucheble: waitToRepeat, highlighted: btn_4}, 'bottom-right']"
-      ></div>
+    <div class="note">
+      <p>Level {{ currentLevel }}</p>
+      <p>Current Stage {{ currentStage }}</p>
+      <p>{{ loose ? 'You loose. Click "start" to new game' : "" }}</p>
     </div>
-    <form name="settings">
-      <span class="stage">Уровень {{score}}</span>
-      <h2>Уровень сложности</h2>
-      <div class="label-group">
-        <label for="radio_one">Лёгкий</label>
-        <label for="radio_two">Нормальный</label>
-        <label for="radio_three">Сложный</label>
+    <div class="wrapper">
+      <Lamp
+        lamp_position="top-left"
+        :lamp_id="1"
+        :allow_clicks="allowClick"
+        @onPushLamp="checkUserClick"
+      />
+      <Lamp
+        lamp_position="top-right"
+        :lamp_id="2"
+        :allow_clicks="allowClick"
+        @onPushLamp="checkUserClick"
+      />
+      <Lamp
+        lamp_position="bottom-left"
+        :lamp_id="3"
+        :allow_clicks="allowClick"
+        @onPushLamp="checkUserClick"
+      />
+      <Lamp
+        lamp_position="bottom-right"
+        :lamp_id="4"
+        :allow_clicks="allowClick"
+        @onPushLamp="checkUserClick"
+      />
+      <div class="center">
+        <div class="button-group">
+          <label for="start">Start</label>
+          <button
+            class="start"
+            name="start"
+            @click="addButtonsToPush"
+            :disabled="gameIsStarted"
+          />
+        </div>
+        <div class="button-group">
+          <label for="radio-group">Level</label>
+          <div name="radio-group" class="radio-group">
+            <p>
+              <input
+                type="radio"
+                name="level"
+                id="1"
+                value="1"
+                v-model="currentLevel"
+              />
+              1
+            </p>
+            <p>
+              <input
+                type="radio"
+                name="level"
+                id="2"
+                value="2"
+                v-model="currentLevel"
+              />
+              2
+            </p>
+            <p>
+              <input
+                type="radio"
+                name="level"
+                id="3"
+                value="3"
+                v-model="currentLevel"
+              />
+              3
+            </p>
+          </div>
+        </div>
       </div>
-      <div class="input-group">
-        <input type="radio" id="radio_one" name="level" value="easy" v-model="level" />
-        <input type="radio" id="radio_two" name="level" value="medium" v-model="level" />
-        <input type="radio" id="radio_three" name="level" value="hard" v-model="level" />
-      </div>
-    </form>
+    </div>
   </div>
 </template>
 
 <script>
 const levels = {
-  easy: 1500,
-  medium: 1000,
-  hard: 400
+  1: 1500,
+  2: 1000,
+  3: 400
 };
+const defaultData = () => ({
+  buttons: [],
+  userStep: 0,
+  currentLevel: 1,
+  currentStage: 1,
+  allowClick: false,
+  gameIsStarted: false,
+  loose: false
+});
 
-const defaultSettings = ()=>({
-level: "easy",
-    
-    endScore: 0,
-    score: 1,
-    waitToRepeat: false,
-    playersClick: 0,
-    arr: [1], 
-    counter: 0,
-    btn_1: false,
-    btn_2: false,
-    btn_3: false,
-    btn_4: false
-})
-
-
+import Lamp from "../components/Lamp.vue";
 
 export default {
   name: "Game",
   data: () => ({
-    level: "easy",
-    centerText: "Начать Simon the game",
-    endScore: 0,
-    score: 1,
-    waitToRepeat: false,
-    playersClick: 0,
-    arr: [1], //массив кнопок, которые нажимает функция (будет пополняться с каждым новым уровнем)
-    counter: 0,
-    btn_1: false,
-    btn_2: false,
-    btn_3: false,
-    btn_4: false
+    buttons: [],
+    userStep: 0,
+    currentLevel: 1,
+    currentStage: 1,
+    allowClick: false,
+    gameIsStarted: false,
+    loose: false
   }),
   methods: {
-    //метод, который подсвечивает нажатые игроком или функцией кнопки
-    highlight(btn) { 
-      this[`btn_${btn}`] = true;
-      setTimeout(() => {
-        this[`btn_${btn}`] = false;
-      }, 350);
-    },
- 
-   //метод, который отслеживает нажатие кнопок и сравнивает верно ли нажато
-    playerRepeat(event) {
-      if (!this.waitToRepeat) return false;
-      const buttonNum = event.target.getAttribute("name");
-      
-      this.highlight(buttonNum); 
-      const audio = new Audio(); 
-      audio.src = require(`../assets/${buttonNum}.mp3`); 
-      audio.play(); 
-      if (this.waitToRepeat) { // проверяем, ожидает ли функция нажатий от игрока
-        if (this.arr[this.playersClick] !== Number(buttonNum)) { //если не соответсвтует цифре в массиве - конец игры
-          this.endScore = this.arr.length;
-          this.centerText = `Game Over! Ты дошёл до ${this.arr.length} уровня. Ещё раз?`;
-     
-          Object.assign(this.$data, defaultSettings());
-          this.disableCenterButton = false;
-          this.waitToRepeat = false;
-          return;
-        }
-        this.playersClick = this.playersClick + 1; //если соответствует, увеличиваем счётчик нажатий и идём дальше
-        if (this.arr.length === this.playersClick) { //если повторили все кнопки - продолжаем игру
-          this.arr.push(this.getRandomButton());
-          this.playersClick = 0;
-          setTimeout(() => {
-            this.play();
-          }, 2000);
-        }
-      }
-    },
-
-//метод, который возвращает рандомный номер кнопки от 1 до 4 включительно
     getRandomButton() {
       const min = 1;
       const max = 5;
       return Math.floor(Math.random() * (max - min)) + min;
     },
-
-//метод который показывает, что нажимать
-    play() {
-      
-      this.disableCenterButton = true;
-      this.centerText = "Запоминай!";
-      this.score = this.arr.length;
-      this.waitToRepeat = false;
-      let timer = setInterval(() => {
-        this.highlight(Number(this.arr[this.counter]));
-        const audio = new Audio(); // Создаём новый элемент Audio
-        audio.src = require(`../assets/${this.arr[this.counter]}.mp3`); // Указываем путь к звуку "клика"
-        audio.play();
-        this.counter = this.counter + 1;
-        if (this.counter === this.arr.length) {
-          clearInterval(timer);
-          
-          this.counter = 0;
-          setTimeout(() => {
-            this.centerText = "Повторяй!";
-            this.waitToRepeat = true;
-          }, 1500);
-          
+    addButtonsToPush() {
+      if (this.loose) {
+        const currLevel = this.currentLevel;
+        Object.assign(this.$data, defaultData());
+        this.currentLevel = currLevel;
+      }
+      this.gameIsStarted = true;
+      this.allowClick = false;
+      const randomLampId = this.getRandomButton();
+      this.buttons.push(randomLampId);
+      this.showWhatNeedToPush();
+    },
+    showWhatNeedToPush() {
+      const interval = levels[this.currentLevel];
+      let step = 0;
+      let intervalFunction = setInterval(() => {
+        let lampId = this.buttons[step] - 1;
+        this.$children[lampId].highlight(interval);
+        step += 1;
+        if (step >= this.buttons.length) {
+          clearInterval(intervalFunction);
+          this.allowClick = true;
         }
-      }, levels[this.level]);
+      }, interval);
+    },
+    checkUserClick(data) {
+      const buttonForCompare = this.buttons[this.userStep];
+      const usersClick = data.id;
+      if (usersClick === buttonForCompare) {
+        this.userStep += 1;
+        if (this.userStep === this.buttons.length) {
+          this.userStep = 0;
+          this.addButtonsToPush();
+        }
+        return;
+      }
+      if (usersClick !== buttonForCompare) {
+        this.gameIsStarted = false;
+        this.allowClick = false;
+        this.loose = true;
+        return;
+      }
     }
+  },
+  components: {
+    Lamp
   }
 };
 </script>
 
-
 <style scoped lang="scss">
-.label-group,
-.input-group {
-  display: flex;
-  justify-content: space-between;
+$lamp_border: 10px solid black;
+@font-face {
+  font-family: "FunnyFont";
+  src: url("../assets/fonts/1.ttf") format("truetype");
 }
 
-label,
-input {
-  width: 100px;
-  margin: 0;
-  text-align: center;
-}
-
-h2 {
-  text-align: center;
-}
-.stage {
-  width: 100%;
-  text-align: center;
-  font-size: 15px;
-  font-weight: bold;
-  display: block;
+.note {
+  font-family: "FunnyFont";
+  font-size: 20px;
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  top: 20%;
+  right: 10%;
+  transform: rotate(-15deg);
+  background: url("../assets/note.png");
+  background-size: cover;
+  filter: brightness(0.75) drop-shadow(5px 5px 3px#00000080);
+  padding: 50px;
+  background-repeat: no-repeat;
 }
 .wrapper {
   width: 500px;
   height: 500px;
   position: relative;
-  display: block;
-  border-radius: 100px;
+  border-radius: 1000px;
   overflow: hidden;
-  cursor: default;
-  z-index: 0;
-
-  div {
-    cursor: pointer;
-    filter: brightness(0.8);
-    z-index: 998;
-
-    &.toucheble:hover {
-      filter: drop-shadow(0px 0px 20px rgb(117, 117, 117));
-      filter: brightness(1);
-    }
-
-    &.toucheble:active {
-      transition: filter 0.1s;
-      filter: brightness(0.9);
-    }
-    &.highlighted {
-      filter: brightness(1.1);
-    }
-    &.highlighted:hover {
-      filter: brightness(1.1);
+  box-shadow: 11px 7px 9px 7px #00000080;
+  border: 20px solid transparent;
+  background-image: url("../assets/blackplastic.jpg");
+  background-size: 200%;
+}
+.center {
+  width: 200px;
+  height: 200px;
+  border: 20px black solid;
+  position: absolute;
+  top: 130px;
+  left: 130px;
+  border-radius: 1000px;
+  background: url("../assets/holes.jpg");
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.button-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: bolder;
+  margin: 0 0 10px;
+}
+.radio-group {
+  display: flex;
+  flex-direction: row;
+  color: #fff;
+  p {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 5px;
+    input {
+      margin: 0;
+      width: 25px;
+      height: 25px;
+      border-radius: 1000px;
+      outline: none;
+      border: 5px solid black;
+      box-sizing: border-box;
+      background-image: url("../assets/plastic.png");
+      background-color: rgba(255, 253, 130, 0.9);
+      background-blend-mode: color-burn;
+      background-size: cover;
+      box-shadow: 3px 2px 2px #4a4a4a8c;
+      appearance: none;
+      cursor: pointer;
+      filter: brightness(0.8);
+      &:checked {
+        background-color: rgba(127, 98, 255, 0.9);
+      }
+      &:hover {
+        filter: brightness(1);
+      }
+      &:active {
+        transition: filter 0.1s;
+        filter: brightness(0.9);
+      }
     }
   }
 }
-
+label {
+  color: green;
+  font-size: 40px;
+  text-shadow: #fff 0 0 0px;
+}
+.start {
+  width: 25px;
+  height: 25px;
+  border-radius: 1000px;
+  outline: none;
+  background: rgba(255, 140, 94, 1);
+  border: 5px solid black;
+  box-sizing: border-box;
+  background-image: url("../assets/plastic.png");
+  background-blend-mode: color-burn;
+  background-size: cover;
+  box-shadow: 3px 2px 2px #4a4a4a8c;
+  cursor: pointer;
+  filter: brightness(0.8);
+  &:hover {
+    filter: brightness(1);
+  }
+  &:active {
+    transition: filter 0.1s;
+    filter: brightness(0.9);
+  }
+}
 .top-left {
-  width: 0;
-  height: 0;
-  border-top: 250px solid #03ffe2;
-  border-right: 250px solid transparent;
-  position: absolute;
+  background-color: rgba(3, 255, 226, 0.9);
+  border-bottom: $lamp_border;
+  border-right: $lamp_border;
 }
 
 .top-right {
-  width: 0;
-  height: 0;
-  border-top: 250px solid #ff8c5e;
-  border-left: 250px solid transparent;
-  position: absolute;
+  background-color: rgba(255, 140, 94, 0.9);
+  border-bottom: $lamp_border;
+  border-left: $lamp_border;
   top: 0;
   right: 0;
 }
 
 .bottom-left {
-  width: 0;
-  height: 0;
-  border-bottom: 250px solid #fffd82;
-  border-right: 250px solid transparent;
-  position: absolute;
+  background-color: rgba(255, 253, 130, 0.9);
+  border-top: $lamp_border;
+  border-right: $lamp_border;
   bottom: 0;
   left: 0;
 }
 
 .bottom-right {
-  width: 0;
-  height: 0;
-  border-bottom: 250px solid #7f62ff;
-  border-left: 250px solid transparent;
-  position: absolute;
+  background-color: rgba(127, 98, 255, 0.9);
+  border-top: $lamp_border;
+  border-left: $lamp_border;
   bottom: 0;
   right: 0;
-}
-
-div.center {
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  top: 50%;
-  left: 50%;
-  margin-left: -100px;
-  margin-top: -100px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 100px;
-  font-weight: bolder;
-  z-index: 999;
-  border: 4px solid #ccc;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  box-sizing: border-box;
-  font-size: 20px;
-  padding: 20px;
-  text-align: center;
-  &:hover {
-    transition: 0.4s;
-    background: rgb(187, 187, 187);
-  }
 }
 </style>

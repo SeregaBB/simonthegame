@@ -16,11 +16,18 @@ export default {
 </script>
 
 <style lang="scss">
+body {
+  margin: 0;
+}
 #app {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  background: url("assets/table.jpg");
+  height: 100vh;
+  background-size: cover;
+  margin: 0;
+  padding: 0;
 }
-
 </style>
