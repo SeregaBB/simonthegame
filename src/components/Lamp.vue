@@ -2,22 +2,42 @@
   <button
     type="button"
     :id="lamp_id"
-    @click="highlight"
-    :class="`button ${lamp_position}`"
+    @click="clickHandler"
+    :class="[{ highlighted: isHighlighted }, lamp_position, 'button']"
+    :disabled="!allow_clicks"
   />
 </template>
 
 <script>
 export default {
   name: "Lamp",
-  data: () => ({}),
+  data: () => ({
+    isHighlighted: false
+  }),
   props: {
     lamp_id: Number,
-    lamp_position: String
+    lamp_position: String,
+    allow_clicks: Boolean
   },
   methods: {
-    highlight() {
-      console.log(this.lamp_id);
+    clickHandler() {
+      const audio = new Audio(); // Создаём новый элемент Audio
+      audio.src = require(`../assets/${this.lamp_id}.mp3`) // Указываем путь к звуку "клика"
+      audio.play();
+      this.$emit("onPushLamp", {
+        id: this.lamp_id
+      });
+    },
+    highlight(timeout) {
+      const correctTimout = 100;
+      const highlightTimeout = timeout - correctTimout;
+      this.isHighlighted = true;
+      const audio = new Audio(); // Создаём новый элемент Audio
+      audio.src = require(`../assets/${this.lamp_id}.mp3`) // Указываем путь к звуку "клика"
+      audio.play();
+      setTimeout(() => {
+        this.isHighlighted = false;
+      }, highlightTimeout);
     }
   }
 };
@@ -37,7 +57,8 @@ export default {
   outline: none;
   cursor: pointer;
   filter: brightness(0.8);
-  &:hover {
+  &:not([disabled]):hover,
+  &.highlighted {
     filter: brightness(1);
   }
   &:active {

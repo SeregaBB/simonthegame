@@ -1,25 +1,78 @@
 <template>
   <div class="game">
     <div class="note">
-      <p>Current Level {{ currentLevel }}</p>
+      <p>Level {{ currentLevel }}</p>
       <p>Current Stage {{ currentStage }}</p>
+      <p>{{ loose ? 'You loose. Click "start" to new game' : "" }}</p>
     </div>
     <div class="wrapper">
-      <Lamp lamp_position="top-left" :lamp_id="1" />
-      <Lamp lamp_position="top-right" :lamp_id="2" />
-      <Lamp lamp_position="bottom-left" :lamp_id="3" />
-      <Lamp lamp_position="bottom-right" :lamp_id="4" />
+      <Lamp
+        lamp_position="top-left"
+        :lamp_id="1"
+        :allow_clicks="allowClick"
+        @onPushLamp="checkUserClick"
+      />
+      <Lamp
+        lamp_position="top-right"
+        :lamp_id="2"
+        :allow_clicks="allowClick"
+        @onPushLamp="checkUserClick"
+      />
+      <Lamp
+        lamp_position="bottom-left"
+        :lamp_id="3"
+        :allow_clicks="allowClick"
+        @onPushLamp="checkUserClick"
+      />
+      <Lamp
+        lamp_position="bottom-right"
+        :lamp_id="4"
+        :allow_clicks="allowClick"
+        @onPushLamp="checkUserClick"
+      />
       <div class="center">
         <div class="button-group">
           <label for="start">Start</label>
-          <button class="start" name="start"></button>
+          <button
+            class="start"
+            name="start"
+            @click="addButtonsToPush"
+            :disabled="gameIsStarted"
+          />
         </div>
         <div class="button-group">
           <label for="radio-group">Level</label>
           <div name="radio-group" class="radio-group">
-            <p><input type="radio" name="level" id="1" value="1" v-model="currentLevel" />1</p>
-            <p><input type="radio" name="level" id="2" value="2" v-model="currentLevel" />2</p>
-            <p><input type="radio" name="level" id="3" value="3" v-model="currentLevel" />3</p>
+            <p>
+              <input
+                type="radio"
+                name="level"
+                id="1"
+                value="1"
+                v-model="currentLevel"
+              />
+              1
+            </p>
+            <p>
+              <input
+                type="radio"
+                name="level"
+                id="2"
+                value="2"
+                v-model="currentLevel"
+              />
+              2
+            </p>
+            <p>
+              <input
+                type="radio"
+                name="level"
+                id="3"
+                value="3"
+                v-model="currentLevel"
+              />
+              3
+            </p>
           </div>
         </div>
       </div>
@@ -28,26 +81,86 @@
 </template>
 
 <script>
-/*const levels = {
-  easy: 1500,
-  medium: 1000,
-  hard: 400
-};*/
+const levels = {
+  1: 1500,
+  2: 1000,
+  3: 400
+};
+const defaultData = () => ({
+  buttons: [],
+  userStep: 0,
+  currentLevel: 1,
+  currentStage: 1,
+  allowClick: false,
+  gameIsStarted: false,
+  loose: false
+});
+
 import Lamp from "../components/Lamp.vue";
 
 export default {
   name: "Game",
   data: () => ({
     buttons: [],
+    userStep: 0,
     currentLevel: 1,
-    currentStage: 1
+    currentStage: 1,
+    allowClick: false,
+    gameIsStarted: false,
+    loose: false
   }),
   methods: {
-    //метод, который возвращает рандомный номер кнопки от 1 до 4 включительно
     getRandomButton() {
       const min = 1;
       const max = 5;
       return Math.floor(Math.random() * (max - min)) + min;
+    },
+    addButtonsToPush() {
+      if (this.loose) {
+        const currLevel = this.currentLevel;
+        Object.assign(this.$data, defaultData());
+        this.currentLevel = currLevel;
+      }
+      this.gameIsStarted = true;
+      this.allowClick = false;
+      const randomLampId = this.getRandomButton();
+      this.buttons.push(randomLampId);
+      console.log(this.buttons);
+      this.showWhatNeedToPush();
+    },
+    showWhatNeedToPush() {
+      const interval = levels[this.currentLevel];
+      let step = 0;
+      let intervalFunction = setInterval(() => {
+        let lampId = this.buttons[step] - 1;
+        console.log(lampId);
+        this.$children[lampId].highlight(interval);
+        step += 1;
+        if (step >= this.buttons.length) {
+          clearInterval(intervalFunction);
+          this.allowClick = true;
+        }
+      }, interval);
+    },
+    checkUserClick(data) {
+      const buttonForCompare = this.buttons[this.userStep];
+      const usersClick = data.id;
+      console.log(buttonForCompare, usersClick, this.userStep);
+      if (usersClick === buttonForCompare) {
+        console.log(true);
+        this.userStep += 1;
+        if (this.userStep === this.buttons.length) {
+          this.userStep = 0;
+          this.addButtonsToPush();
+        }
+        return;
+      }
+      if (usersClick !== buttonForCompare) {
+        this.gameIsStarted = false;
+        this.allowClick = false;
+        this.loose = true;
+        return;
+      }
     }
   },
   components: {
