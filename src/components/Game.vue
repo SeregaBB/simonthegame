@@ -1,5 +1,9 @@
 <template>
   <div class="game">
+    <div class="note">
+      <p>Current Level {{ currentLevel }}</p>
+      <p>Current Stage {{ currentStage }}</p>
+    </div>
     <div class="wrapper">
       <Lamp lamp_position="top-left" :lamp_id="1" />
       <Lamp lamp_position="top-right" :lamp_id="2" />
@@ -13,9 +17,9 @@
         <div class="button-group">
           <label for="radio-group">Level</label>
           <div name="radio-group" class="radio-group">
-            <p><input type="radio" name="level" id="1" value="1" />1</p>
-            <p><input type="radio" name="level" id="2" value="2" />2</p>
-            <p><input type="radio" name="level" id="3" value="3" />3</p>
+            <p><input type="radio" name="level" id="1" value="1" v-model="currentLevel" />1</p>
+            <p><input type="radio" name="level" id="2" value="2" v-model="currentLevel" />2</p>
+            <p><input type="radio" name="level" id="3" value="3" v-model="currentLevel" />3</p>
           </div>
         </div>
       </div>
@@ -34,7 +38,9 @@ import Lamp from "../components/Lamp.vue";
 export default {
   name: "Game",
   data: () => ({
-    buttons: []
+    buttons: [],
+    currentLevel: 1,
+    currentStage: 1
   }),
   methods: {
     //метод, который возвращает рандомный номер кнопки от 1 до 4 включительно
@@ -52,6 +58,26 @@ export default {
 
 <style scoped lang="scss">
 $lamp_border: 10px solid black;
+@font-face {
+  font-family: "FunnyFont";
+  src: url("../assets/fonts/1.ttf") format("truetype"); /* все современные браузеры */
+}
+
+.note {
+  font-family: "FunnyFont";
+  font-size: 20px;
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  top: 20%;
+  right: 10%;
+  transform: rotate(-15deg);
+  background: url("../assets/note.png");
+  background-size: cover;
+  filter: brightness(0.75) drop-shadow(5px 5px 3px#00000080);
+  padding: 50px;
+  background-repeat: no-repeat;
+}
 .wrapper {
   width: 500px;
   height: 500px;
@@ -111,7 +137,7 @@ $lamp_border: 10px solid black;
       cursor: pointer;
       filter: brightness(0.8);
       &:checked {
-        background-color: rgba(127, 98, 255, 0.9)
+        background-color: rgba(127, 98, 255, 0.9);
       }
       &:hover {
         filter: brightness(1);
