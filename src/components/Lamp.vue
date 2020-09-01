@@ -21,8 +21,8 @@ export default {
   },
   methods: {
     clickHandler() {
-      const audio = new Audio(); // Создаём новый элемент Audio
-      audio.src = require(`../assets/${this.lamp_id}.mp3`) // Указываем путь к звуку "клика"
+      const audio = new Audio();
+      audio.src = require(`../assets/${this.lamp_id}.mp3`);
       audio.play();
       this.$emit("onPushLamp", {
         id: this.lamp_id
@@ -32,8 +32,8 @@ export default {
       const correctTimout = 100;
       const highlightTimeout = timeout - correctTimout;
       this.isHighlighted = true;
-      const audio = new Audio(); // Создаём новый элемент Audio
-      audio.src = require(`../assets/${this.lamp_id}.mp3`) // Указываем путь к звуку "клика"
+      const audio = new Audio();
+      audio.src = require(`../assets/${this.lamp_id}.mp3`);
       audio.play();
       setTimeout(() => {
         this.isHighlighted = false;

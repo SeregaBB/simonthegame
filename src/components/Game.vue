@@ -125,7 +125,6 @@ export default {
       this.allowClick = false;
       const randomLampId = this.getRandomButton();
       this.buttons.push(randomLampId);
-      console.log(this.buttons);
       this.showWhatNeedToPush();
     },
     showWhatNeedToPush() {
@@ -133,7 +132,6 @@ export default {
       let step = 0;
       let intervalFunction = setInterval(() => {
         let lampId = this.buttons[step] - 1;
-        console.log(lampId);
         this.$children[lampId].highlight(interval);
         step += 1;
         if (step >= this.buttons.length) {
@@ -145,9 +143,7 @@ export default {
     checkUserClick(data) {
       const buttonForCompare = this.buttons[this.userStep];
       const usersClick = data.id;
-      console.log(buttonForCompare, usersClick, this.userStep);
       if (usersClick === buttonForCompare) {
-        console.log(true);
         this.userStep += 1;
         if (this.userStep === this.buttons.length) {
           this.userStep = 0;
@@ -173,7 +169,7 @@ export default {
 $lamp_border: 10px solid black;
 @font-face {
   font-family: "FunnyFont";
-  src: url("../assets/fonts/1.ttf") format("truetype"); /* все современные браузеры */
+  src: url("../assets/fonts/1.ttf") format("truetype");
 }
 
 .note {
