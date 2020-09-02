@@ -1,5 +1,5 @@
 # medodsgame
-Новая версия проекта "Simon the game" доступна по ссылке 
+Новая версия проекта "Simon the game" на gh-pages доступна по ссылке https://seregabb.github.io/simonthegame/
 
 
 
